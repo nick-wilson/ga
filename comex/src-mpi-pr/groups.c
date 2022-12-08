@@ -26,17 +26,8 @@
 
 
 /* world group state */
-comex_group_world_t g_state = {
-    MPI_COMM_NULL,
-    MPI_GROUP_NULL,
-    -1,
-    -1,
-    NULL,
-    NULL,
-    MPI_COMM_NULL,
-    -1,
-    -1
-};
+comex_group_world_t g_state = {0};
+
 /* the HEAD of the group linked list */
 comex_igroup_t *group_list = NULL;
 
