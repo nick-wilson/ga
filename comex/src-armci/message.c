@@ -348,7 +348,13 @@ void armci_msg_brdcst(void* buffer, int len, int root)
 
 
 /* there was a case in ghost update where a proc sent a message to itself */
+#ifdef MPI_REQUEST_NULL
 static MPI_Request self_request = MPI_REQUEST_NULL;
+#else
+/* use MPICH value, should be overwritten before used */
+#define MPI_REQUEST_NULL_WORKAROUND ((MPI_Request)0x2c000000)
+static MPI_Request self_request = MPI_REQUEST_NULL_WORKAROUND;
+#endif
 static int self_request_flag = 0;
 
 void armci_msg_snd(int tag, void* buffer, int len, int to)
@@ -404,6 +410,12 @@ void armci_msg_rcv(int tag, void* buffer, int len, int *msglen, int from)
     assert(MPI_SUCCESS == rc);
     if (from == self && self_request_flag) {
         do {
+#ifdef MPI_REQUEST_NULL_WORKAROUND
+            if (self_request==MPI_REQUEST_NULL_WORKAROUND){
+                  fprintf(stderr,"MPI_REQUEST_NULL_WORKAROUND failed");
+                  armci_msg_abort(1);
+            }
+#endif
             MPI_Test(&self_request, &flag, &status);
             assert(MPI_SUCCESS == rc);
 #if COMEX_NETWORK_MPI_TS
